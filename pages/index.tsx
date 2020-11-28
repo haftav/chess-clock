@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import * as React from 'react';
-import EasyTimer, {TimerParams} from 'easytimer.js';
+import EasyTimer, {TimerParams, TimeCounter} from 'easytimer.js';
 
 import styles from '../styles/Home.module.css';
 import Timer from '../components/Timer';
@@ -15,9 +15,22 @@ enum GameStates {
   Ended,
 }
 
-enum Players {
+export enum Players {
   p1,
   p2,
+}
+
+enum KeyCodes {
+  RIGHT_SHIFT = 'ShiftRight',
+  LEFT_SHIFT = 'ShiftLeft',
+  SPACE = 'Space',
+}
+
+interface SwitchTurnParams {
+  currentTimer: EasyTimer;
+  nextTimer: EasyTimer;
+  updateTimer: (newValues: TimeCounter) => void;
+  nextPlayer: Players;
 }
 
 function isNumber(num: number | undefined): num is number {
@@ -36,8 +49,8 @@ export default function Home() {
   });
   const [increment, setIncrement] = React.useState(0);
 
-  const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig);
-  const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig);
+  const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, 'Player 2');
+  const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, 'Player 1');
 
   const currentTimer = turnState === Players.p1 ? p1Timer : p2Timer;
 
@@ -58,29 +71,29 @@ export default function Home() {
     }
   };
 
-  const switchTurn = () => {
-    const currentTimer = turnState === Players.p1 ? p1Timer : p2Timer;
-    const updateTimer = turnState === Players.p1 ? updateP1Timer : updateP2Timer;
-    const nextTimer = turnState === Players.p1 ? p2Timer : p1Timer;
+  // p1Timer, p2Timer, updateP1Timer, updateP2Timer, turnState
+  const switchTurn = React.useCallback(
+    ({currentTimer, nextTimer, updateTimer, nextPlayer}: SwitchTurnParams) => () => {
+      // pause current player's timer (and add increment if necessary)
+      currentTimer.pause();
+      // start next player's timer
+      nextTimer.start();
 
-    // pause current player's timer (and add increment if necessary)
-    currentTimer.pause();
-    // start next player's timer
-    nextTimer.start();
+      setTurnState(nextPlayer);
 
-    setTurnState((prevTurn) => (prevTurn === Players.p1 ? Players.p2 : Players.p1));
+      if (increment) {
+        const newValues = getIncrementedTime(currentTimer.getTimeValues(), increment);
+        updateTimer(newValues);
+      }
 
-    if (increment) {
-      const newValues = getIncrementedTime(currentTimer.getTimeValues(), increment);
-      updateTimer(newValues);
-    }
+      if (gameState !== GameStates.Playing) {
+        setGameState(GameStates.Playing);
+      }
+    },
+    [increment, gameState]
+  );
 
-    if (gameState !== GameStates.Playing) {
-      setGameState(GameStates.Playing);
-    }
-  };
-
-  const toggleTimer = () => {
+  const toggleTimer = React.useCallback(() => {
     if (currentTimer.isRunning()) {
       currentTimer.pause();
       setGameState(GameStates.Paused);
@@ -88,7 +101,39 @@ export default function Home() {
       currentTimer.start();
       setGameState(GameStates.Playing);
     }
-  };
+  }, [currentTimer]) 
+
+  React.useEffect(() => {
+    const eventListener = (e: KeyboardEvent) => {
+
+      console.log(e);
+      if (e.code === KeyCodes.LEFT_SHIFT && turnState === Players.p1) {
+      switchTurn({
+        currentTimer: p1Timer,
+        nextTimer: p2Timer,
+        updateTimer: updateP1Timer,
+        nextPlayer: Players.p2,
+      })();
+      }
+
+      if (e.code === KeyCodes.RIGHT_SHIFT && turnState === Players.p2) {
+        switchTurn({
+          currentTimer: p2Timer,
+          nextTimer: p1Timer,
+          updateTimer: updateP2Timer,
+          nextPlayer: Players.p1,
+        })();
+      }
+
+      // if (e.code === KeyCodes.SPACE) {
+      //   toggleTimer();
+      // }
+    };
+
+    document.addEventListener('keydown', eventListener);
+
+    return () => document.removeEventListener('keydown', eventListener);
+  }, [switchTurn, turnState, p1Timer, p2Timer, updateP1Timer, updateP2Timer, toggleTimer]);
 
   return (
     <div className={styles.container}>
@@ -124,13 +169,29 @@ export default function Home() {
         <div className={styles.content}>
           <div>
             <Timer timeLeft={p1TimeLeft} />
-            <button onClick={switchTurn} disabled={turnState === Players.p2}>
+            <button
+              onClick={switchTurn({
+                currentTimer: p1Timer,
+                nextTimer: p2Timer,
+                updateTimer: updateP1Timer,
+                nextPlayer: Players.p2,
+              })}
+              disabled={turnState === Players.p2}
+            >
               Switch
             </button>
           </div>
           <div>
             <Timer timeLeft={p2TimeLeft} />
-            <button onClick={switchTurn} disabled={turnState === Players.p1}>
+            <button
+              onClick={switchTurn({
+                currentTimer: p2Timer,
+                nextTimer: p1Timer,
+                updateTimer: updateP2Timer,
+                nextPlayer: Players.p1,
+              })}
+              disabled={turnState === Players.p1}
+            >
               Switch
             </button>
           </div>
