@@ -20,14 +20,15 @@ function createGameTypeDisplay(timeValues: TimeCounter, increment: number): stri
 const Options = ({config, increment, children}: OptionsProps) => {
   const timer = React.useMemo(() => new EasyTimer(config), [config]);
 
-
   const display = createGameTypeDisplay(timer.getTotalTimeValues(), increment);
 
   return (
-    <div style={{marginBottom: 50}}>
-      <h1>Options</h1>
-      <h2>Game Type: {display}</h2>
-      {children}
+    <div>
+      <div className="pb-8">
+        <h2 className="text-2xl font-normal text-gray-600 text-center">Selected Game Mode:</h2>
+        <h2 className="text-center text-lg font-bold">{display}</h2>
+      </div>
+        {children}
     </div>
   );
 };

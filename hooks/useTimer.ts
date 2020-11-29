@@ -1,8 +1,6 @@
 import * as React from 'react';
 import EasyTimer, {TimeCounter, TimerParams} from 'easytimer.js';
 
-import {Players} from '../pages/index';
-
 function useTimer(
   timerConfig: TimerParams,
   player: string,

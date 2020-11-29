@@ -2,7 +2,6 @@ import Head from 'next/head';
 import * as React from 'react';
 import EasyTimer, {TimerParams, TimeCounter} from 'easytimer.js';
 
-import styles from '../styles/Home.module.css';
 import Timer from '../components/Timer';
 import Options from '../components/Options';
 import useTimer from '../hooks/useTimer';
@@ -15,7 +14,7 @@ enum GameStates {
   Ended,
 }
 
-export enum Players {
+enum Players {
   p1,
   p2,
 }
@@ -37,6 +36,21 @@ function isNumber(num: number | undefined): num is number {
   return typeof num === 'number';
 }
 
+interface OptionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+}
+
+const OptionButton = ({children, ...rest}: OptionButtonProps) => {
+  return (
+    <button
+      className="w-30 h-12 rounded-md text-white font-bold bg-gradient-to-r from-blue-500 to-blue-300"
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+};
+
 export default function Home() {
   const [gameState, setGameState] = React.useState(GameStates.Menu);
   const [turnState, setTurnState] = React.useState<Players>(Players.p1);
@@ -48,7 +62,7 @@ export default function Home() {
     },
   });
   const [increment, setIncrement] = React.useState(0);
-  const [sidesSwitched, setSidesSwitched ] = React.useState(false);
+  const [sidesSwitched, setSidesSwitched] = React.useState(false);
 
   const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, 'Player 2');
   const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, 'Player 1');
@@ -105,9 +119,12 @@ export default function Home() {
 
   React.useEffect(() => {
     const eventListener = (e: KeyboardEvent) => {
-
       const p1Key = sidesSwitched ? KeyCodes.RIGHT_SHIFT : KeyCodes.LEFT_SHIFT;
       const p2Key = sidesSwitched ? KeyCodes.LEFT_SHIFT : KeyCodes.RIGHT_SHIFT;
+
+      if (gameState === GameStates.Menu || gameState === GameStates.Ended) {
+        return;
+      }
 
       if (e.code === p1Key && turnState === Players.p1) {
         switchTurn({
@@ -136,9 +153,19 @@ export default function Home() {
     document.addEventListener('keydown', eventListener);
 
     return () => document.removeEventListener('keydown', eventListener);
-  }, [switchTurn, turnState, p1Timer, p2Timer, updateP1Timer, updateP2Timer, toggleTimer, sidesSwitched]);
+  }, [
+    gameState,
+    switchTurn,
+    turnState,
+    p1Timer,
+    p2Timer,
+    updateP1Timer,
+    updateP2Timer,
+    toggleTimer,
+    sidesSwitched,
+  ]);
 
-  const switchSides = () => setSidesSwitched(prevState => !prevState);
+  const switchSides = () => setSidesSwitched((prevState) => !prevState);
 
   const P1Timer = (
     <div key="p1">
@@ -183,51 +210,51 @@ export default function Home() {
   }
 
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
         <title>Chess Clock</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
+      <main>
         {gameState === GameStates.Menu ? (
-          <Options config={timerConfig} increment={increment}>
-            <h2>Time Modes</h2>
-            <button onClick={handleOptionClick(30)}>30 sec</button>
-            <button onClick={handleOptionClick(60)}>1 min</button>
-            <button onClick={handleOptionClick(60, 1)}>1 | 1</button>
-            <button onClick={handleOptionClick(60 * 2, 1)}>2 | 1</button>
-            <button onClick={handleOptionClick(60 * 3)}>3 min</button>
-            <button onClick={handleOptionClick(60 * 3, 2)}>3 | 2</button>
-            <button onClick={handleOptionClick(60 * 5)}>5 min</button>
-            <button onClick={handleOptionClick(60 * 5, 5)}>5 | 5</button>
-            <button onClick={handleOptionClick(60 * 10)}>10 min</button>
-            <button onClick={handleOptionClick(60 * 15, 10)}>15 | 10</button>
-            <button onClick={handleOptionClick(60 * 30)}>30 min</button>
-            <button onClick={handleOptionClick(60 * 60)}>60 min</button>
-            <h2>Switch Sides</h2>
-            <button onClick={switchSides}>Switch Sides</button>
-          </Options>
+          <div className="container mx-auto px-8 py-8">
+            <h1 className="text-4xl text-gray-600 text-center my-10">CHESS TIMER</h1>
+            <Options config={timerConfig} increment={increment}>
+              <button
+                onClick={toggleTimer}
+                className="block mx-auto bg-gradient-to-r from-red-500 to-red-300 w-52 px-6 py-3 rounded-md text-lg text-white font-bold mb-10"
+              >
+                START GAME
+              </button>
+              <h2 className="text-2xl font-normal mb-4">Game Options</h2>
+              <div className="container h-px bg-gray-200 mb-6"></div>
+              <div className="grid grid-cols-2 gap-6">
+                <OptionButton onClick={handleOptionClick(30)}>30 sec</OptionButton>
+                <OptionButton onClick={handleOptionClick(60)}>1 min</OptionButton>
+                <OptionButton onClick={handleOptionClick(60, 1)}>1 | 1</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 2, 1)}>2 | 1</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 3)}>3 min</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 3, 2)}>3 | 2</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 5)}>5 min</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 5, 5)}>5 | 5</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 10)}>10 min</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 15, 10)}>15 | 10</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 30)}>30 min</OptionButton>
+                <OptionButton onClick={handleOptionClick(60 * 60)}>60 min</OptionButton>
+              </div>
+              <button onClick={switchSides}>Switch Sides</button>
+            </Options>
+          </div>
         ) : (
-          <button>New Options</button>
+          <>
+            <div>{Timers}</div>
+            <button style={{marginTop: 50}} onClick={toggleTimer}>
+              {currentTimer.isRunning() ? 'Pause' : 'Play'}
+            </button>
+          </>
         )}
-        <div className={styles.content}>
-          {Timers}
-        </div>
-        <button style={{marginTop: 50}} onClick={toggleTimer}>
-          {currentTimer.isRunning() ? 'Pause' : 'Play'}
-        </button>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
     </div>
   );
 }
