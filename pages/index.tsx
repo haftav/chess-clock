@@ -48,6 +48,7 @@ export default function Home() {
     },
   });
   const [increment, setIncrement] = React.useState(0);
+  const [sidesSwitched, setSidesSwitched ] = React.useState(false);
 
   const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, 'Player 2');
   const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, 'Player 1');
@@ -71,7 +72,6 @@ export default function Home() {
     }
   };
 
-  // p1Timer, p2Timer, updateP1Timer, updateP2Timer, turnState
   const switchTurn = React.useCallback(
     ({currentTimer, nextTimer, updateTimer, nextPlayer}: SwitchTurnParams) => () => {
       // pause current player's timer (and add increment if necessary)
@@ -101,22 +101,24 @@ export default function Home() {
       currentTimer.start();
       setGameState(GameStates.Playing);
     }
-  }, [currentTimer]) 
+  }, [currentTimer]);
 
   React.useEffect(() => {
     const eventListener = (e: KeyboardEvent) => {
 
-      console.log(e);
-      if (e.code === KeyCodes.LEFT_SHIFT && turnState === Players.p1) {
-      switchTurn({
-        currentTimer: p1Timer,
-        nextTimer: p2Timer,
-        updateTimer: updateP1Timer,
-        nextPlayer: Players.p2,
-      })();
+      const p1Key = sidesSwitched ? KeyCodes.RIGHT_SHIFT : KeyCodes.LEFT_SHIFT;
+      const p2Key = sidesSwitched ? KeyCodes.LEFT_SHIFT : KeyCodes.RIGHT_SHIFT;
+
+      if (e.code === p1Key && turnState === Players.p1) {
+        switchTurn({
+          currentTimer: p1Timer,
+          nextTimer: p2Timer,
+          updateTimer: updateP1Timer,
+          nextPlayer: Players.p2,
+        })();
       }
 
-      if (e.code === KeyCodes.RIGHT_SHIFT && turnState === Players.p2) {
+      if (e.code === p2Key && turnState === Players.p2) {
         switchTurn({
           currentTimer: p2Timer,
           nextTimer: p1Timer,
@@ -125,15 +127,60 @@ export default function Home() {
         })();
       }
 
-      // if (e.code === KeyCodes.SPACE) {
-      //   toggleTimer();
-      // }
+      if (e.code === KeyCodes.SPACE) {
+        e.preventDefault();
+        toggleTimer();
+      }
     };
 
     document.addEventListener('keydown', eventListener);
 
     return () => document.removeEventListener('keydown', eventListener);
-  }, [switchTurn, turnState, p1Timer, p2Timer, updateP1Timer, updateP2Timer, toggleTimer]);
+  }, [switchTurn, turnState, p1Timer, p2Timer, updateP1Timer, updateP2Timer, toggleTimer, sidesSwitched]);
+
+  const switchSides = () => setSidesSwitched(prevState => !prevState);
+
+  const P1Timer = (
+    <div key="p1">
+      P1 - Playing White
+      <Timer timeLeft={p1TimeLeft} />
+      <button
+        onClick={switchTurn({
+          currentTimer: p1Timer,
+          nextTimer: p2Timer,
+          updateTimer: updateP1Timer,
+          nextPlayer: Players.p2,
+        })}
+        disabled={gameState === GameStates.Menu || turnState === Players.p2}
+      >
+        Switch
+      </button>
+    </div>
+  );
+
+  const P2Timer = (
+    <div key="p2">
+      P2 - Playing Black
+      <Timer timeLeft={p2TimeLeft} />
+      <button
+        onClick={switchTurn({
+          currentTimer: p2Timer,
+          nextTimer: p1Timer,
+          updateTimer: updateP2Timer,
+          nextPlayer: Players.p1,
+        })}
+        disabled={gameState === GameStates.Menu || turnState === Players.p1}
+      >
+        Switch
+      </button>
+    </div>
+  );
+
+  let Timers = [P1Timer, P2Timer];
+
+  if (sidesSwitched) {
+    Timers = Timers.reverse();
+  }
 
   return (
     <div className={styles.container}>
@@ -143,13 +190,9 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1>Config</h1>
-        {JSON.stringify(timerConfig, null, 2)}
-        <h1>Increment</h1>
-        {increment}
         {gameState === GameStates.Menu ? (
-          <Options>
-            <h1>Game Modes</h1>
+          <Options config={timerConfig} increment={increment}>
+            <h2>Time Modes</h2>
             <button onClick={handleOptionClick(30)}>30 sec</button>
             <button onClick={handleOptionClick(60)}>1 min</button>
             <button onClick={handleOptionClick(60, 1)}>1 | 1</button>
@@ -162,39 +205,14 @@ export default function Home() {
             <button onClick={handleOptionClick(60 * 15, 10)}>15 | 10</button>
             <button onClick={handleOptionClick(60 * 30)}>30 min</button>
             <button onClick={handleOptionClick(60 * 60)}>60 min</button>
+            <h2>Switch Sides</h2>
+            <button onClick={switchSides}>Switch Sides</button>
           </Options>
         ) : (
           <button>New Options</button>
         )}
         <div className={styles.content}>
-          <div>
-            <Timer timeLeft={p1TimeLeft} />
-            <button
-              onClick={switchTurn({
-                currentTimer: p1Timer,
-                nextTimer: p2Timer,
-                updateTimer: updateP1Timer,
-                nextPlayer: Players.p2,
-              })}
-              disabled={turnState === Players.p2}
-            >
-              Switch
-            </button>
-          </div>
-          <div>
-            <Timer timeLeft={p2TimeLeft} />
-            <button
-              onClick={switchTurn({
-                currentTimer: p2Timer,
-                nextTimer: p1Timer,
-                updateTimer: updateP2Timer,
-                nextPlayer: Players.p1,
-              })}
-              disabled={turnState === Players.p1}
-            >
-              Switch
-            </button>
-          </div>
+          {Timers}
         </div>
         <button style={{marginTop: 50}} onClick={toggleTimer}>
           {currentTimer.isRunning() ? 'Pause' : 'Play'}
