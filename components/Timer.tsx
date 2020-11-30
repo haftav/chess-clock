@@ -12,7 +12,7 @@ const Timer = ({timeLeft}: TimerProps) => {
   const formattedTime = `${minutes} : ${seconds}${secondTenths}`;
 
   return (
-    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+    <div className="flex justify-center items-center h-44 border border-red-500">
       <h1>{formattedTime}</h1>
     </div>
   );

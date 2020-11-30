@@ -27,14 +27,17 @@ function useTimer(
       setTimeLeft(newValues);
     };
 
+    const targetAchievedListener = () => {
+      alert(`${player.toUpperCase()} Wins!`);
+    }
+
     timer.addEventListener('secondTenthsUpdated', eventListener);
 
-    timer.addEventListener('targetAchieved', () => {
-      alert(`${player.toUpperCase()} Wins!`)
-    })
+    timer.addEventListener('targetAchieved', targetAchievedListener)
 
     return () => {
       timer.removeEventListener('secondTenthsUpdated', eventListener);
+      timer.removeEventListener('targetAchieved', targetAchievedListener);
     };
   }, [timer, player]);
 

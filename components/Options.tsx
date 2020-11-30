@@ -7,27 +7,23 @@ interface OptionsProps {
   increment: number;
 }
 
-function createGameTypeDisplay(timeValues: TimeCounter, increment: number): string {
-  const {minutes, seconds} = timeValues;
+// function createGameTypeDisplay(timeValues: TimeCounter, increment: number): string {
+//   const {minutes, seconds} = timeValues;
 
-  if (increment) {
-    return `${minutes} | ${increment}`;
-  }
+//   if (increment) {
+//     return `${minutes} | ${increment}`;
+//   }
 
-  return seconds < 60 ? `${seconds} sec` : `${minutes} min`;
-}
+//   return seconds < 60 ? `${seconds} sec` : `${minutes} min`;
+// }
 
 const Options = ({config, increment, children}: OptionsProps) => {
   const timer = React.useMemo(() => new EasyTimer(config), [config]);
 
-  const display = createGameTypeDisplay(timer.getTotalTimeValues(), increment);
+  // const display = createGameTypeDisplay(timer.getTotalTimeValues(), increment);
 
   return (
     <div>
-      <div className="pb-8">
-        <h2 className="text-2xl font-normal text-gray-600 text-center">Selected Game Mode:</h2>
-        <h2 className="text-center text-lg font-bold">{display}</h2>
-      </div>
         {children}
     </div>
   );
