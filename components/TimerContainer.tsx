@@ -24,7 +24,7 @@ const TimerContainer = ({
   turnState,
   reverse = false,
 }: TimerContainerProps) => {
-  let wrapperClasses = 'flex';
+  let wrapperClasses = 'flex flex-1';
   if (reverse) {
     wrapperClasses += ' flex-col-reverse';
   } else {
@@ -34,7 +34,7 @@ const TimerContainer = ({
     <div key="p1" className={wrapperClasses}>
       <h2 className="hidden se:inline text-xl">Player 1</h2>
       <button
-        className="btn-cyan disabled:btn-disabled w-56 h-11 font-semibold mx-auto mb-4 block"
+        className="flex-none btn-cyan disabled:btn-disabled w-56 h-11 font-semibold mx-auto block"
         onClick={switchTurn({
           currentTimer,
           nextTimer,
@@ -45,7 +45,9 @@ const TimerContainer = ({
       >
         SWITCH
       </button>
-      {children}
+      <div className="flex-1">
+        {children}
+      </div>
     </div>
   );
 };
