@@ -1,4 +1,4 @@
-import EasyTimer, {TimeCounter} from 'easytimer.js';
+import EasyTimer from 'easytimer.js';
 
 export enum Players {
   p1,
@@ -8,7 +8,7 @@ export enum Players {
 export interface SwitchTurnParams {
   currentTimer: EasyTimer;
   nextTimer: EasyTimer;
-  updateTimer: (newValues: TimeCounter) => void;
+  updateTimer: (newTimer: EasyTimer) => void;
   nextPlayer: Players;
 }
 

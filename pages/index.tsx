@@ -60,6 +60,7 @@ export default function Home() {
   const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, 'Player 2');
   const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, 'Player 1');
 
+
   const currentTimer = turnState === Players.p1 ? p1Timer : p2Timer;
 
   const handleOptionClick = (duration: number, gameType: string, increment?: number) => () => {
@@ -93,14 +94,15 @@ export default function Home() {
 
       if (increment) {
         const newValues = getIncrementedTime(currentTimer.getTimeValues(), increment);
-        updateTimer(newValues);
+        const newConfig = {...timerConfig, startValues: newValues};
+        updateTimer(new EasyTimer(newConfig));
       }
 
       if (gameState !== GameStates.Playing) {
         setGameState(GameStates.Playing);
       }
     },
-    [increment, gameState]
+    [increment, gameState, timerConfig]
   );
 
   const toggleTimer = React.useCallback(() => {
@@ -114,13 +116,18 @@ export default function Home() {
   }, [currentTimer]);
 
   const moveToMenuState = () => {
-    if (currentTimer.isRunning()) {
-      currentTimer.stop();
-    }
+    currentTimer.stop()
+
+    updateP1Timer(new EasyTimer(timerConfig));
+    updateP2Timer(new EasyTimer(timerConfig));
+  
+    setTurnState(sidesSwitched ? Players.p2 : Players.p1);
+
     setGameState(GameStates.Menu);
   };
 
   React.useEffect(() => {
+    console.log('key listener effect');
     const eventListener = (e: KeyboardEvent) => {
       const p1Key = KeyCodes.LEFT_SHIFT;
       const p2Key = KeyCodes.RIGHT_SHIFT;
@@ -289,6 +296,7 @@ export default function Home() {
               updateTimer={updateP2Timer}
               gameState={gameState}
               turnState={turnState}
+              reverse
             >
               <Timer timeLeft={p2TimeLeft} />
             </TimerContainer>

@@ -4,15 +4,14 @@ import EasyTimer, {TimeCounter, TimerParams} from 'easytimer.js';
 function useTimer(
   timerConfig: TimerParams,
   player: string,
-): readonly [EasyTimer, TimeCounter, (newValues: TimeCounter) => void] {
+): readonly [EasyTimer, TimeCounter, (newTimer: EasyTimer) => void] {
   const [timer, setTimer] = React.useState(new EasyTimer(timerConfig));
 
+  // keeping this in state to trigger rerender when values change
   const [timeLeft, setTimeLeft] = React.useState(timer.getTimeValues());
 
-  const updateTime = (newValues: TimeCounter) => {
-    const newConfig = {...timerConfig, startValues: newValues};
-    setTimeLeft(newValues);
-    setTimer(new EasyTimer(newConfig));
+  const updateTimer = (newTimer: EasyTimer) => {
+    setTimer(newTimer);
   };
 
   React.useEffect(() => {
@@ -41,7 +40,7 @@ function useTimer(
     };
   }, [timer, player]);
 
-  return [timer, timeLeft, updateTime] as const;
+  return [timer, timeLeft, updateTimer] as const;
 }
 
 export default useTimer;
