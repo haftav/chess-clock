@@ -2,34 +2,20 @@ import Head from 'next/head';
 import * as React from 'react';
 import EasyTimer, {TimerParams, TimeCounter} from 'easytimer.js';
 
+import TimerContainer from '../components/TimerContainer';
 import Timer from '../components/Timer';
 import Options from '../components/Options';
+import Menu from '../components/Menu';
+import Game from '../components/Game';
+import GameControl from '../components/GameControl';
 import useTimer from '../hooks/useTimer';
 import {getIncrementedTime} from '../utils';
-
-enum GameStates {
-  Menu,
-  Playing,
-  Paused,
-  Ended,
-}
-
-enum Players {
-  p1,
-  p2,
-}
+import {GameStates, Players, SwitchTurnParams} from '../models';
 
 enum KeyCodes {
   RIGHT_SHIFT = 'ShiftRight',
   LEFT_SHIFT = 'ShiftLeft',
   SPACE = 'Space',
-}
-
-interface SwitchTurnParams {
-  currentTimer: EasyTimer;
-  nextTimer: EasyTimer;
-  updateTimer: (newValues: TimeCounter) => void;
-  nextPlayer: Players;
 }
 
 function isNumber(num: number | undefined): num is number {
@@ -52,21 +38,6 @@ const OptionButton = ({selected, children, ...rest}: OptionButtonProps) => {
 
   return (
     <button className={classes} {...rest}>
-      {children}
-    </button>
-  );
-};
-
-interface ActionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-}
-
-const ActionButton = ({children, ...rest}: ActionButtonProps) => {
-  return (
-    <button
-      className="text-xl block mx-auto bg-gradient-to-r from-red-500 to-red-300 w-52 px-6 py-3 rounded-md text-white font-semibold mb-10"
-      {...rest}
-    >
       {children}
     </button>
   );
@@ -110,6 +81,7 @@ export default function Home() {
     }
   };
 
+  // I don't need to use a closure here, but I prefer this syntax vs. creating arrow functions in the JSX
   const switchTurn = React.useCallback(
     ({currentTimer, nextTimer, updateTimer, nextPlayer}: SwitchTurnParams) => () => {
       // pause current player's timer (and add increment if necessary)
@@ -146,7 +118,7 @@ export default function Home() {
       currentTimer.stop();
     }
     setGameState(GameStates.Menu);
-  }
+  };
 
   React.useEffect(() => {
     const eventListener = (e: KeyboardEvent) => {
@@ -201,46 +173,6 @@ export default function Home() {
     setTurnState((prevState) => (prevState === Players.p1 ? Players.p2 : Players.p1));
   };
 
-  const FirstTimer = (
-    <div key="p1" className="flex-flex-col">
-      <h2 className="hidden sm:inline text-xl">Player 1</h2>
-      <button
-        className="btn-cyan disabled:btn-disabled w-56 h-11 font-semibold mx-auto mb-4 block"
-        onClick={switchTurn({
-          currentTimer: p1Timer,
-          nextTimer: p2Timer,
-          updateTimer: updateP1Timer,
-          nextPlayer: Players.p2,
-        })}
-        disabled={gameState === GameStates.Menu || turnState === Players.p2}
-      >
-        SWITCH
-      </button>
-      <Timer timeLeft={p1TimeLeft} />
-    </div>
-  );
-
-  const SecondTimer = (
-    <div key="p2" className="flex flex-col-reverse">
-      <h2 className="hidden sm:inline text-xl">Player 2</h2>
-      <button
-        className="btn-cyan disabled:btn-disabled w-56 h-11 font-semibold mx-auto mt-4 block"
-        onClick={switchTurn({
-          currentTimer: p2Timer,
-          nextTimer: p1Timer,
-          updateTimer: updateP2Timer,
-          nextPlayer: Players.p1,
-        })}
-        disabled={gameState === GameStates.Menu || turnState === Players.p1}
-      >
-        SWITCH
-      </button>
-      <Timer timeLeft={p2TimeLeft} />
-    </div>
-  );
-
-  const Timers = [FirstTimer, SecondTimer];
-
   return (
     <div>
       <Head>
@@ -250,126 +182,117 @@ export default function Home() {
 
       <main>
         {gameState === GameStates.Menu ? (
-          <div className="container mx-auto px-8 py-8">
-            <h1 className="text-4xl text-gray-600 text-center my-10">CHESS TIMER</h1>
-            <div className="pb-8">
-              <h2 className="text-2xl font-regular text-gray-600 text-center">
-                Selected Game Mode:
-              </h2>
-              <h2 className="text-center text-lg font-bold">{gameType}</h2>
-            </div>
-            <ActionButton onClick={toggleTimer}>START GAME</ActionButton>
-            <h3 className="text-center my-4 text-lg">
-              {sidesSwitched ? 'P1 - Black' : 'P1 - White'}
-            </h3>
-            <button className="btn-gray mx-auto block" onClick={switchSides}>
-              Switch Sides
-            </button>
-            <h3 className="text-center my-4 text-lg">
-              {sidesSwitched ? 'P2 - White' : 'P2 - Black'}
-            </h3>
-            <Options config={timerConfig} increment={increment}>
-              <h2 className="text-2xl font-normal mb-4">Game Options</h2>
-              <div className="container h-px bg-gray-200 mb-6"></div>
-              <div className="grid grid-cols-2 gap-6">
-                <OptionButton
-                  selected={gameType === '30 sec'}
-                  onClick={handleOptionClick(30, '30 sec')}
-                >
-                  30 sec
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '1 min'}
-                  onClick={handleOptionClick(60, '1 min')}
-                >
-                  1 min
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '1 | 1'}
-                  onClick={handleOptionClick(60, '1 | 1', 1)}
-                >
-                  1 | 1
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '2 | 1'}
-                  onClick={handleOptionClick(60 * 2, '2 | 1', 1)}
-                >
-                  2 | 1
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '3 min'}
-                  onClick={handleOptionClick(60 * 3, '3 min')}
-                >
-                  3 min
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '3 | 2'}
-                  onClick={handleOptionClick(60 * 3, '3 | 2', 2)}
-                >
-                  3 | 2
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '5 min'}
-                  onClick={handleOptionClick(60 * 5, '5 min')}
-                >
-                  5 min
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '5 | 5'}
-                  onClick={handleOptionClick(60 * 5, '5 | 5', 5)}
-                >
-                  5 | 5
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '10 min'}
-                  onClick={handleOptionClick(60 * 10, '10 min')}
-                >
-                  10 min
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '15 | 10'}
-                  onClick={handleOptionClick(60 * 15, '15 | 10', 10)}
-                >
-                  15 | 10
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '30 min'}
-                  onClick={handleOptionClick(60 * 30, '30 min')}
-                >
-                  30 min
-                </OptionButton>
-                <OptionButton
-                  selected={gameType === '60 min'}
-                  onClick={handleOptionClick(60 * 60, '60 min')}
-                >
-                  60 min
-                </OptionButton>
-              </div>
+          <Menu
+            gameType={gameType}
+            toggleTimer={toggleTimer}
+            switchSides={switchSides}
+            sidesSwitched={sidesSwitched}
+          >
+            <Options>
+              <OptionButton
+                selected={gameType === '30 sec'}
+                onClick={handleOptionClick(30, '30 sec')}
+              >
+                30 sec
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '1 min'}
+                onClick={handleOptionClick(60, '1 min')}
+              >
+                1 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '1 | 1'}
+                onClick={handleOptionClick(60, '1 | 1', 1)}
+              >
+                1 | 1
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '2 | 1'}
+                onClick={handleOptionClick(60 * 2, '2 | 1', 1)}
+              >
+                2 | 1
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '3 min'}
+                onClick={handleOptionClick(60 * 3, '3 min')}
+              >
+                3 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '3 | 2'}
+                onClick={handleOptionClick(60 * 3, '3 | 2', 2)}
+              >
+                3 | 2
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '5 min'}
+                onClick={handleOptionClick(60 * 5, '5 min')}
+              >
+                5 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '5 | 5'}
+                onClick={handleOptionClick(60 * 5, '5 | 5', 5)}
+              >
+                5 | 5
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '10 min'}
+                onClick={handleOptionClick(60 * 10, '10 min')}
+              >
+                10 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '15 | 10'}
+                onClick={handleOptionClick(60 * 15, '15 | 10', 10)}
+              >
+                15 | 10
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '30 min'}
+                onClick={handleOptionClick(60 * 30, '30 min')}
+              >
+                30 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '60 min'}
+                onClick={handleOptionClick(60 * 60, '60 min')}
+              >
+                60 min
+              </OptionButton>
             </Options>
-          </div>
+          </Menu>
         ) : (
-          <div className="container flex items-center justify-center h-screen mx-auto">
-            <div className="h-auto sm:h-96 flex flex-col justify-center py-10 sm:py-0">
-              <div className="h-full border border-blue-500 flex flex-col justify-between">
-                {Timers[0]}
-                <div className="w-72 mx-auto my-4 flex justify-around">
-                  <button
-                    className="btn-cyan font-semibold text-lg w-28 h-10 flex justify-center items-center"
-                    onClick={toggleTimer}
-                  >
-                    {currentTimer.isRunning() ? 'Pause' : 'Play'}
-                  </button>
-                  <button
-                    className="btn-red font-semibold text-lg w-28 h-10 flex justify-center items-center"
-                    onClick={moveToMenuState}
-                  >
-                    New Game
-                  </button>
-                </div>
-                {Timers[1]}
-              </div>
-            </div>
-          </div>
+          <Game>
+            <TimerContainer
+              currentTimer={p1Timer}
+              nextTimer={p2Timer}
+              nextPlayer={Players.p2}
+              switchTurn={switchTurn}
+              updateTimer={updateP1Timer}
+              gameState={gameState}
+              turnState={turnState}
+            >
+              <Timer timeLeft={p1TimeLeft} />
+            </TimerContainer>
+            <GameControl
+              currentTimer={currentTimer}
+              toggleTimer={toggleTimer}
+              moveToMenuState={moveToMenuState}
+            />
+            <TimerContainer
+              currentTimer={p2Timer}
+              nextTimer={p1Timer}
+              nextPlayer={Players.p1}
+              switchTurn={switchTurn}
+              updateTimer={updateP2Timer}
+              gameState={gameState}
+              turnState={turnState}
+            >
+              <Timer timeLeft={p2TimeLeft} />
+            </TimerContainer>
+          </Game>
         )}
       </main>
     </div>

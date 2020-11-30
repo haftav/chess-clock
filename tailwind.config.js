@@ -10,6 +10,9 @@ module.exports = {
         cyan: colors.cyan,
       }
     },
+    screens: {
+      'se': '568px'
+    }
   },
   variants: {
     extend: {
