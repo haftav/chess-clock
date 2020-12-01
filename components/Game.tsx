@@ -4,8 +4,8 @@ interface GameProps {
 
 const Game = ({children}: GameProps) => {
   return (
-    <div className="container flex items-center se:items-start justify-center h-screen py-10 mx-auto">
-      <div className="h-full border border-blue-500 flex flex-col justify-between">{children}</div>
+    <div className="container flex items-center se:items-start justify-center h-screen py-5 mx-auto se:px-10">
+      <div className="h-full flex flex-col justify-between se:flex-row">{children}</div>
     </div>
   );
 };

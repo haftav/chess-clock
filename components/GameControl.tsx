@@ -8,15 +8,15 @@ interface GameControlProps {
 
 const GameControl = ({currentTimer, toggleTimer, moveToMenuState}: GameControlProps) => {
   return (
-    <div className="w-72 mx-auto my-4 flex justify-around">
+    <div className="mx-auto my-4 flex justify-around se:flex-col se:justify-center se:w-auto">
     <button
-      className="btn-cyan font-semibold text-lg w-28 h-10 flex justify-center items-center"
+      className="btn-cyan font-semibold text-lg w-32 p-2 mx-2"
       onClick={toggleTimer}
     >
       {currentTimer.isRunning() ? 'Pause' : 'Play'}
     </button>
     <button
-      className="btn-red font-semibold text-lg w-28 h-10 flex justify-center items-center"
+      className="btn-red font-semibold text-lg w-32 p-2 mx-2"
       onClick={moveToMenuState}
     >
       New Game

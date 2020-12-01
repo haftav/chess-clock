@@ -8,16 +8,21 @@ module.exports = {
     extend: {
       colors: {
         cyan: colors.cyan,
-      }
+      },
+      spacing: {
+        '1/2': '50%',
+        full: '100%',
+        inherit: 'inherit',
+      },
+      screens: {
+        se: '568px',
+      },
     },
-    screens: {
-      'se': '568px'
-    }
   },
   variants: {
     extend: {
       opacity: ['disabled'],
-      backgroundImage: ['disabled']
+      backgroundImage: ['disabled'],
     },
   },
   plugins: [],
