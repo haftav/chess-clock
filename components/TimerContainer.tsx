@@ -32,12 +32,12 @@ const TimerContainer = ({
   }
   return (
     <div key="p1" className={`${wrapperClasses} se:border se:border-gray-100 se:px-3 se:py-4`}>
-      <h2 className="hidden se:inline text-xl">{nextPlayer === Players.p2 ? 'Player 1' : 'Player 2'}</h2>
+      <h2 className="hidden se:inline text-xl se:text-center">{nextPlayer === Players.p2 ? 'Player 1' : 'Player 2'}</h2>
       <div className="flex-1 block se:flex se:justify-center">
         {children}
       </div>
       <button
-        className="flex-none btn-cyan disabled:btn-disabled w-full h-14 text-xl font-medium tracking-wide mx-auto block"
+        className="flex-none btn-cyan disabled:btn-disabled w-full h-14 text-xl font-medium tracking-wide mx-auto block sm:w-4/5 sm:font-normal sm:tracking-wider"
         onClick={switchTurn({
           currentTimer,
           nextTimer,

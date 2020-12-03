@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { screens } = require('tailwindcss/defaultTheme')
+const {screens} = require('tailwindcss/defaultTheme');
 const colors = require('tailwindcss/colors');
 
 module.exports = {
@@ -15,9 +15,13 @@ module.exports = {
         full: '100%',
         inherit: 'inherit',
       },
+      maxHeight: {
+        'almostFull': '90%',
+      }
     },
     screens: {
       se: '568px',
+      landscape: {raw: '(max-height: 500px) and (max-width:1000px)'},
       ...screens,
     },
   },

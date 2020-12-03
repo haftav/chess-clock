@@ -185,7 +185,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
+      <main className="max-h-full">
         {gameState === GameStates.Menu ? (
           <Menu
             gameType={gameType}
