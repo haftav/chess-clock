@@ -31,9 +31,9 @@ const TimerContainer = ({
     wrapperClasses += ' flex-col-reverse se:flex-col';
   }
   return (
-    <div key="p1" className={wrapperClasses}>
+    <div key="p1" className={`${wrapperClasses} se:border se:border-gray-100 se:px-3 se:py-4`}>
       <h2 className="hidden se:inline text-xl">{nextPlayer === Players.p2 ? 'Player 1' : 'Player 2'}</h2>
-      <div className="flex-1">
+      <div className="flex-1 block se:flex se:justify-center">
         {children}
       </div>
       <button

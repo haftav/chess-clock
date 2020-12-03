@@ -21,11 +21,10 @@ const Timer = ({timeLeft, timerConfig = {}, timer}: TimerProps) => {
 
   const percentProgress = (rawSeconds / initialSeconds) * 100;
 
-
   return (
-    <div className="relative h-full flex justify-center items-center">
+    <div className="relative h-full flex justify-center items-center se:h-auto se:w-full se:max-w-xs">
       <h1 className="text-3xl font-medium text-gray-600">{formattedTime}</h1>
-      <div className="absolute inset-0 flex justify-center w-full h-full px-8 py-5">
+      <div className="absolute inset-0 flex justify-center w-full h-full py-5 se:px-8">
         <ProgressRing percent={percentProgress} />
       </div>
     </div>

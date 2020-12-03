@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+const { screens } = require('tailwindcss/defaultTheme')
 const colors = require('tailwindcss/colors');
 
 module.exports = {
@@ -14,9 +15,10 @@ module.exports = {
         full: '100%',
         inherit: 'inherit',
       },
-      screens: {
-        se: '568px',
-      },
+    },
+    screens: {
+      se: '568px',
+      ...screens,
     },
   },
   variants: {
