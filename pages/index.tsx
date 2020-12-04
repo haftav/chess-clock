@@ -56,9 +56,18 @@ export default function Home() {
   const [gameType, setGameType] = React.useState('5 min');
   const [increment, setIncrement] = React.useState(0);
   const [sidesSwitched, setSidesSwitched] = React.useState(false);
+  const [winner, setWinner] = React.useState<Players | null>();
 
-  const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, 'Player 2');
-  const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, 'Player 1');
+  const onEnd = React.useCallback((winningPlayer: Players) => {
+    setWinner(winningPlayer);
+    setGameState(GameStates.Ended);
+  }, []);
+
+  const onPlayerOneTimerEnd = React.useCallback(() => onEnd(Players.p2), [onEnd]);
+  const onPlayerTwoTimerEnd = React.useCallback(() => onEnd(Players.p1), [onEnd]);
+
+  const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, onPlayerOneTimerEnd);
+  const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, onPlayerTwoTimerEnd);
 
   const currentTimer = turnState === Players.p1 ? p1Timer : p2Timer;
 
@@ -122,6 +131,7 @@ export default function Home() {
 
     setTurnState(sidesSwitched ? Players.p2 : Players.p1);
 
+    setWinner(null);
     setGameState(GameStates.Menu);
   };
 
@@ -178,6 +188,15 @@ export default function Home() {
     setTurnState((prevState) => (prevState === Players.p1 ? Players.p2 : Players.p1));
   };
 
+  const resetTimers = () => {
+    updateP1Timer(new EasyTimer(timerConfig));
+    updateP2Timer(new EasyTimer(timerConfig));
+
+    setTurnState(sidesSwitched ? Players.p2 : Players.p1);
+    setWinner(null);
+    setGameState(GameStates.Paused);
+  };
+
   return (
     <div>
       <Head>
@@ -194,6 +213,9 @@ export default function Home() {
             sidesSwitched={sidesSwitched}
           >
             <Options>
+              <OptionButton selected={gameType === '5 sec'} onClick={handleOptionClick(5, '5 sec')}>
+                5 sec
+              </OptionButton>
               <OptionButton
                 selected={gameType === '30 sec'}
                 onClick={handleOptionClick(30, '30 sec')}
@@ -278,13 +300,16 @@ export default function Home() {
               updateTimer={updateP1Timer}
               gameState={gameState}
               turnState={turnState}
+              color={sidesSwitched ? 'black' : 'white'}
+              isWinningPlayer={winner === Players.p1}
             >
               <Timer timeLeft={p1TimeLeft} timer={p1Timer} timerConfig={timerConfig} />
             </TimerContainer>
             <GameControl
-              currentTimer={currentTimer}
+              gameState={gameState}
               toggleTimer={toggleTimer}
               moveToMenuState={moveToMenuState}
+              resetTimers={resetTimers}
             />
             <TimerContainer
               currentTimer={p2Timer}
@@ -294,6 +319,8 @@ export default function Home() {
               updateTimer={updateP2Timer}
               gameState={gameState}
               turnState={turnState}
+              color={sidesSwitched ? 'white' : 'black'}
+              isWinningPlayer={winner === Players.p2}
               reverse
             >
               <Timer timeLeft={p2TimeLeft} timer={p2Timer} timerConfig={timerConfig} />

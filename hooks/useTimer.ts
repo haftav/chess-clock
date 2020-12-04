@@ -3,7 +3,7 @@ import EasyTimer, {TimeCounter, TimerParams} from 'easytimer.js';
 
 function useTimer(
   timerConfig: TimerParams,
-  player: string,
+  onEnd: () => void,
 ): readonly [EasyTimer, TimeCounter, (newTimer: EasyTimer) => void] {
   const [timer, setTimer] = React.useState(new EasyTimer(timerConfig));
 
@@ -27,7 +27,8 @@ function useTimer(
     };
 
     const targetAchievedListener = () => {
-      alert(`${player.toUpperCase()} Wins!`);
+      // set game state to ended
+      onEnd();
     }
 
     timer.addEventListener('secondTenthsUpdated', eventListener);
@@ -38,7 +39,7 @@ function useTimer(
       timer.removeEventListener('secondTenthsUpdated', eventListener);
       timer.removeEventListener('targetAchieved', targetAchievedListener);
     };
-  }, [timer, player]);
+  }, [timer, onEnd]);
 
   return [timer, timeLeft, updateTimer] as const;
 }
