@@ -2,23 +2,15 @@ import Head from 'next/head';
 import * as React from 'react';
 import EasyTimer, {TimerParams, TimeCounter} from 'easytimer.js';
 
-import styles from '../styles/Home.module.css';
+import TimerContainer from '../components/TimerContainer';
 import Timer from '../components/Timer';
 import Options from '../components/Options';
+import Menu from '../components/Menu';
+import Game from '../components/Game';
+import GameControl from '../components/GameControl';
 import useTimer from '../hooks/useTimer';
 import {getIncrementedTime} from '../utils';
-
-enum GameStates {
-  Menu,
-  Playing,
-  Paused,
-  Ended,
-}
-
-export enum Players {
-  p1,
-  p2,
-}
+import {GameStates, Players, SwitchTurnParams} from '../models';
 
 enum KeyCodes {
   RIGHT_SHIFT = 'ShiftRight',
@@ -26,16 +18,30 @@ enum KeyCodes {
   SPACE = 'Space',
 }
 
-interface SwitchTurnParams {
-  currentTimer: EasyTimer;
-  nextTimer: EasyTimer;
-  updateTimer: (newValues: TimeCounter) => void;
-  nextPlayer: Players;
-}
-
 function isNumber(num: number | undefined): num is number {
   return typeof num === 'number';
 }
+
+interface OptionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+  selected: boolean;
+  children: React.ReactNode;
+}
+
+const OptionButton = ({selected, children, ...rest}: OptionButtonProps) => {
+  let classes = 'w-auto h-12 rounded-md text-white font-bold bg-gradient-to-r';
+
+  if (selected) {
+    classes += ' from-cyan-500 to-cyan-300';
+  } else {
+    classes += ' from-gray-500 to-gray-400';
+  }
+
+  return (
+    <button className={classes} {...rest}>
+      {children}
+    </button>
+  );
+};
 
 export default function Home() {
   const [gameState, setGameState] = React.useState(GameStates.Menu);
@@ -47,15 +53,25 @@ export default function Home() {
       seconds: 300,
     },
   });
+  const [gameType, setGameType] = React.useState('5 min');
   const [increment, setIncrement] = React.useState(0);
-  const [sidesSwitched, setSidesSwitched ] = React.useState(false);
+  const [sidesSwitched, setSidesSwitched] = React.useState(false);
+  const [winner, setWinner] = React.useState<Players | null>();
 
-  const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, 'Player 2');
-  const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, 'Player 1');
+  const onEnd = React.useCallback((winningPlayer: Players) => {
+    setWinner(winningPlayer);
+    setGameState(GameStates.Ended);
+  }, []);
+
+  const onPlayerOneTimerEnd = React.useCallback(() => onEnd(Players.p2), [onEnd]);
+  const onPlayerTwoTimerEnd = React.useCallback(() => onEnd(Players.p1), [onEnd]);
+
+  const [p1Timer, p1TimeLeft, updateP1Timer] = useTimer(timerConfig, onPlayerOneTimerEnd);
+  const [p2Timer, p2TimeLeft, updateP2Timer] = useTimer(timerConfig, onPlayerTwoTimerEnd);
 
   const currentTimer = turnState === Players.p1 ? p1Timer : p2Timer;
 
-  const handleOptionClick = (duration: number, increment?: number) => () => {
+  const handleOptionClick = (duration: number, gameType: string, increment?: number) => () => {
     setTimerConfig((prevConfig) => {
       return {
         ...prevConfig,
@@ -65,6 +81,8 @@ export default function Home() {
       };
     });
 
+    setGameType(gameType);
+
     if (isNumber(increment)) {
       setIncrement(increment);
     } else {
@@ -72,6 +90,7 @@ export default function Home() {
     }
   };
 
+  // I don't need to use a closure here, but I prefer this syntax vs. creating arrow functions in the JSX
   const switchTurn = React.useCallback(
     ({currentTimer, nextTimer, updateTimer, nextPlayer}: SwitchTurnParams) => () => {
       // pause current player's timer (and add increment if necessary)
@@ -83,14 +102,15 @@ export default function Home() {
 
       if (increment) {
         const newValues = getIncrementedTime(currentTimer.getTimeValues(), increment);
-        updateTimer(newValues);
+        const newConfig = {...timerConfig, startValues: newValues};
+        updateTimer(new EasyTimer(newConfig));
       }
 
       if (gameState !== GameStates.Playing) {
         setGameState(GameStates.Playing);
       }
     },
-    [increment, gameState]
+    [increment, gameState, timerConfig]
   );
 
   const toggleTimer = React.useCallback(() => {
@@ -103,11 +123,26 @@ export default function Home() {
     }
   }, [currentTimer]);
 
+  const moveToMenuState = () => {
+    currentTimer.stop();
+
+    updateP1Timer(new EasyTimer(timerConfig));
+    updateP2Timer(new EasyTimer(timerConfig));
+
+    setTurnState(sidesSwitched ? Players.p2 : Players.p1);
+
+    setWinner(null);
+    setGameState(GameStates.Menu);
+  };
+
   React.useEffect(() => {
     const eventListener = (e: KeyboardEvent) => {
+      const p1Key = KeyCodes.LEFT_SHIFT;
+      const p2Key = KeyCodes.RIGHT_SHIFT;
 
-      const p1Key = sidesSwitched ? KeyCodes.RIGHT_SHIFT : KeyCodes.LEFT_SHIFT;
-      const p2Key = sidesSwitched ? KeyCodes.LEFT_SHIFT : KeyCodes.RIGHT_SHIFT;
+      if (gameState === GameStates.Menu || gameState === GameStates.Ended) {
+        return;
+      }
 
       if (e.code === p1Key && turnState === Players.p1) {
         switchTurn({
@@ -136,98 +171,163 @@ export default function Home() {
     document.addEventListener('keydown', eventListener);
 
     return () => document.removeEventListener('keydown', eventListener);
-  }, [switchTurn, turnState, p1Timer, p2Timer, updateP1Timer, updateP2Timer, toggleTimer, sidesSwitched]);
+  }, [
+    gameState,
+    switchTurn,
+    turnState,
+    p1Timer,
+    p2Timer,
+    updateP1Timer,
+    updateP2Timer,
+    toggleTimer,
+    sidesSwitched,
+  ]);
 
-  const switchSides = () => setSidesSwitched(prevState => !prevState);
+  const switchSides = () => {
+    setSidesSwitched((prevState) => !prevState);
+    setTurnState((prevState) => (prevState === Players.p1 ? Players.p2 : Players.p1));
+  };
 
-  const P1Timer = (
-    <div key="p1">
-      P1 - Playing White
-      <Timer timeLeft={p1TimeLeft} />
-      <button
-        onClick={switchTurn({
-          currentTimer: p1Timer,
-          nextTimer: p2Timer,
-          updateTimer: updateP1Timer,
-          nextPlayer: Players.p2,
-        })}
-        disabled={gameState === GameStates.Menu || turnState === Players.p2}
-      >
-        Switch
-      </button>
-    </div>
-  );
+  const resetTimers = () => {
+    updateP1Timer(new EasyTimer(timerConfig));
+    updateP2Timer(new EasyTimer(timerConfig));
 
-  const P2Timer = (
-    <div key="p2">
-      P2 - Playing Black
-      <Timer timeLeft={p2TimeLeft} />
-      <button
-        onClick={switchTurn({
-          currentTimer: p2Timer,
-          nextTimer: p1Timer,
-          updateTimer: updateP2Timer,
-          nextPlayer: Players.p1,
-        })}
-        disabled={gameState === GameStates.Menu || turnState === Players.p1}
-      >
-        Switch
-      </button>
-    </div>
-  );
-
-  let Timers = [P1Timer, P2Timer];
-
-  if (sidesSwitched) {
-    Timers = Timers.reverse();
-  }
+    setTurnState(sidesSwitched ? Players.p2 : Players.p1);
+    setWinner(null);
+    setGameState(GameStates.Paused);
+  };
 
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
         <title>Chess Clock</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
+      <main className="max-h-full">
         {gameState === GameStates.Menu ? (
-          <Options config={timerConfig} increment={increment}>
-            <h2>Time Modes</h2>
-            <button onClick={handleOptionClick(30)}>30 sec</button>
-            <button onClick={handleOptionClick(60)}>1 min</button>
-            <button onClick={handleOptionClick(60, 1)}>1 | 1</button>
-            <button onClick={handleOptionClick(60 * 2, 1)}>2 | 1</button>
-            <button onClick={handleOptionClick(60 * 3)}>3 min</button>
-            <button onClick={handleOptionClick(60 * 3, 2)}>3 | 2</button>
-            <button onClick={handleOptionClick(60 * 5)}>5 min</button>
-            <button onClick={handleOptionClick(60 * 5, 5)}>5 | 5</button>
-            <button onClick={handleOptionClick(60 * 10)}>10 min</button>
-            <button onClick={handleOptionClick(60 * 15, 10)}>15 | 10</button>
-            <button onClick={handleOptionClick(60 * 30)}>30 min</button>
-            <button onClick={handleOptionClick(60 * 60)}>60 min</button>
-            <h2>Switch Sides</h2>
-            <button onClick={switchSides}>Switch Sides</button>
-          </Options>
+          <Menu
+            gameType={gameType}
+            toggleTimer={toggleTimer}
+            switchSides={switchSides}
+            sidesSwitched={sidesSwitched}
+          >
+            <Options>
+              <OptionButton selected={gameType === '5 sec'} onClick={handleOptionClick(5, '5 sec')}>
+                5 sec
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '30 sec'}
+                onClick={handleOptionClick(30, '30 sec')}
+              >
+                30 sec
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '1 min'}
+                onClick={handleOptionClick(60, '1 min')}
+              >
+                1 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '1 | 1'}
+                onClick={handleOptionClick(60, '1 | 1', 1)}
+              >
+                1 | 1
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '2 | 1'}
+                onClick={handleOptionClick(60 * 2, '2 | 1', 1)}
+              >
+                2 | 1
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '3 min'}
+                onClick={handleOptionClick(60 * 3, '3 min')}
+              >
+                3 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '3 | 2'}
+                onClick={handleOptionClick(60 * 3, '3 | 2', 2)}
+              >
+                3 | 2
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '5 min'}
+                onClick={handleOptionClick(60 * 5, '5 min')}
+              >
+                5 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '5 | 5'}
+                onClick={handleOptionClick(60 * 5, '5 | 5', 5)}
+              >
+                5 | 5
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '10 min'}
+                onClick={handleOptionClick(60 * 10, '10 min')}
+              >
+                10 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '15 | 10'}
+                onClick={handleOptionClick(60 * 15, '15 | 10', 10)}
+              >
+                15 | 10
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '30 min'}
+                onClick={handleOptionClick(60 * 30, '30 min')}
+              >
+                30 min
+              </OptionButton>
+              <OptionButton
+                selected={gameType === '60 min'}
+                onClick={handleOptionClick(60 * 60, '60 min')}
+              >
+                60 min
+              </OptionButton>
+            </Options>
+          </Menu>
         ) : (
-          <button>New Options</button>
+          <Game>
+            <TimerContainer
+              currentTimer={p1Timer}
+              nextTimer={p2Timer}
+              nextPlayer={Players.p2}
+              switchTurn={switchTurn}
+              updateTimer={updateP1Timer}
+              gameState={gameState}
+              turnState={turnState}
+              color={sidesSwitched ? 'black' : 'white'}
+              isWinningPlayer={winner === Players.p1}
+            >
+              <Timer timeLeft={p1TimeLeft} timer={p1Timer} timerConfig={timerConfig} />
+            </TimerContainer>
+            <GameControl
+              gameState={gameState}
+              toggleTimer={toggleTimer}
+              moveToMenuState={moveToMenuState}
+              resetTimers={resetTimers}
+            />
+            <TimerContainer
+              currentTimer={p2Timer}
+              nextTimer={p1Timer}
+              nextPlayer={Players.p1}
+              switchTurn={switchTurn}
+              updateTimer={updateP2Timer}
+              gameState={gameState}
+              turnState={turnState}
+              color={sidesSwitched ? 'white' : 'black'}
+              isWinningPlayer={winner === Players.p2}
+              reverse
+            >
+              <Timer timeLeft={p2TimeLeft} timer={p2Timer} timerConfig={timerConfig} />
+            </TimerContainer>
+          </Game>
         )}
-        <div className={styles.content}>
-          {Timers}
-        </div>
-        <button style={{marginTop: 50}} onClick={toggleTimer}>
-          {currentTimer.isRunning() ? 'Pause' : 'Play'}
-        </button>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
     </div>
   );
 }

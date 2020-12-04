@@ -9,10 +9,13 @@
     "test": "jest"
   },
   "dependencies": {
+    "autoprefixer": "^10.0.4",
     "easytimer.js": "^4.3.1",
     "next": "10.0.3",
+    "postcss": "^8.1.10",
     "react": "17.0.1",
-    "react-dom": "17.0.1"
+    "react-dom": "17.0.1",
+    "tailwindcss": "^2.0.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.12.7",
