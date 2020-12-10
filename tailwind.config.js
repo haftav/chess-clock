@@ -29,6 +29,7 @@ module.exports = {
     extend: {
       opacity: ['disabled'],
       backgroundImage: ['disabled'],
+      cursor: ['disabled']
     },
   },
   plugins: [],

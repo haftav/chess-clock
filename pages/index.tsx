@@ -28,7 +28,7 @@ interface OptionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 }
 
 const OptionButton = ({selected, children, ...rest}: OptionButtonProps) => {
-  let classes = 'w-auto h-12 rounded-md text-white font-bold bg-gradient-to-r';
+  let classes = 'w-auto max-w-xs h-12 rounded-md text-white font-bold bg-gradient-to-r';
 
   if (selected) {
     classes += ' from-cyan-500 to-cyan-300';

@@ -49,14 +49,14 @@ const TimerContainer = ({
         <ChessPiece color={color} />
       </div>
       <button
-        className="flex-none btn-cyan disabled:btn-disabled w-full h-14 text-xl font-medium tracking-wide mx-auto block sm:w-4/5 sm:font-normal sm:tracking-wider"
+        className="flex-none btn-cyan disabled:cursor-default disabled:btn-disabled w-full h-14 text-xl font-medium tracking-wide mx-auto block sm:w-4/5 sm:font-normal sm:tracking-wider "
         onClick={switchTurn({
           currentTimer,
           nextTimer,
           updateTimer,
           nextPlayer,
         })}
-        disabled={gameState === GameStates.Menu || gameState === GameStates.Ended || turnState === nextPlayer}
+        disabled={gameState !== GameStates.Playing || turnState === nextPlayer}
       >
         SWITCH
       </button>
