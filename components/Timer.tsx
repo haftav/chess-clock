@@ -25,15 +25,15 @@ const Timer = ({timeLeft, timerConfig = {}, timer}: TimerProps) => {
 
   const formattedTime = (
     <>
-      <span className={`inline-block ${minutes < 1 ? 'w-9' : minutes < 10 ? 'w-3' : 'w-9'}`}>
+      <span className={`inline-block ${minutes < 1 ? 'w-7 se:w-6 lg:w-9' : minutes < 10 ? 'w-4 se:w-3 lg:w-5' : 'w-7 se:w-6 lg:w-9'}`}>
         {formattedMinutes}
       </span>
-      <span className="mx-1">:</span>
-      <span className="inline-block w-9">{formattedSeconds}</span>
+      <span className="mx-px">:</span>
+      <span className="inline-block w-7 se:w-6 lg:w-9 text-left">{formattedSeconds}</span>
       {minutes < 1 ? (
         <>
-          <span className="mx-1">:</span>
-          <span className="inline-block w-9">{formattedSecondTenths}</span>
+          <span className="mx-px">:</span>
+          <span className="inline-block w-7 se:w-6 lg:w-9 text-left">{formattedSecondTenths}</span>
         </>
       ) : (
         ''
@@ -49,10 +49,7 @@ const Timer = ({timeLeft, timerConfig = {}, timer}: TimerProps) => {
   return (
     <div className="relative h-full flex justify-center items-center se:h-auto se:w-full se:max-w-xs">
       <div className={`flex justify-center`}>
-        <h1 className="text-3xl text-right">{formattedTime}</h1>
-        {/* <h1 className="block text-3xl se:text-xl lg:text-3xl font-medium text-gray-600">
-          {formattedTime}
-        </h1> */}
+        <h1 className="text-2xl se:text-xl lg:text-3xl text-right">{formattedTime}</h1>
       </div>
       <div className="absolute inset-0 flex justify-center w-full h-full py-5 se:px-3 md:px-8 lg:px-12">
         <ProgressRing percent={percentProgress} />
