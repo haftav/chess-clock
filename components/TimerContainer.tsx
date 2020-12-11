@@ -45,7 +45,7 @@ const TimerContainer = ({
         {`${playerName}${isWinningPlayer ? ' wins!' : ''}`}
       </h2>
       <div className="flex-1 block se:flex se:justify-center">{children}</div>
-      <div className="hidden se:flex se:h-16 sm:h-20 mb-12">
+      <div className="hidden landscape:hidden se:flex se:h-16 sm:h-20 mb-12">
         <ChessPiece color={color} />
       </div>
       <button

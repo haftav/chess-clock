@@ -213,9 +213,6 @@ export default function Home() {
             sidesSwitched={sidesSwitched}
           >
             <Options>
-              <OptionButton selected={gameType === '5 sec'} onClick={handleOptionClick(5, '5 sec')}>
-                5 sec
-              </OptionButton>
               <OptionButton
                 selected={gameType === '30 sec'}
                 onClick={handleOptionClick(30, '30 sec')}
