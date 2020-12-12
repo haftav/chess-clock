@@ -18,6 +18,7 @@ const ProgressRing = ({percent = 100}: ProgressRingProps) => {
       width="100%"
       preserveAspectRatio="xMidYMid meet"
       xmlns="http://www.w3.org/2000/svg"
+      className="hidden mini:block"
     >
       <circle
         cx="50"

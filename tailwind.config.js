@@ -20,6 +20,7 @@ module.exports = {
       }
     },
     screens: {
+      mini: '350px',
       se: '568px',
       landscape: {raw: '(max-height: 500px) and (max-width:1000px)'},
       ...screens,
