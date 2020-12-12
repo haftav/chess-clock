@@ -40,7 +40,12 @@ const TimerContainer = ({
 
   const playerName = nextPlayer === Players.p2 ? 'Player 1' : 'Player 2';
   return (
-    <div key="p1" className={`${wrapperClasses} se:border se:border-gray-100 se:shadow-sm se:px-3 se:py-4`}>
+    <div
+      key="p1"
+      className={`${wrapperClasses} ${
+        turnState === nextPlayer || gameState !== GameStates.Playing ? 'opacity-50' : 'opacity-100'
+      } se:border se:border-gray-100 se:shadow-sm se:px-3 se:py-4`}
+    >
       <h2 className="hidden se:inline text-xl se:text-center sm:text-2xl text-gray-600 font-light tracking-wide">
         {`${playerName}${isWinningPlayer ? ' wins!' : ''}`}
       </h2>
