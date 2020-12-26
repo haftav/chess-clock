@@ -17,11 +17,13 @@ const Menu = ({children, gameType, toggleTimer, switchSides, sidesSwitched}: Men
         <h2 className="text-center text-lg font-bold">{gameType}</h2>
       </div>
       <ActionButton onClick={toggleTimer}>START GAME</ActionButton>
-      <h3 className="text-center my-4 text-lg">{sidesSwitched ? 'P1 - Black' : 'P1 - White'}</h3>
-      <button className="btn-gray mx-auto block" onClick={switchSides}>
-        Switch Sides
-      </button>
-      <h3 className="text-center my-4 text-lg">{sidesSwitched ? 'P2 - White' : 'P2 - Black'}</h3>
+      <div className="flex justify-center items-center w-96 max-w-full m-auto">
+        <h3 className="text-center my-4 text-lg">{sidesSwitched ? 'P1 - Black' : 'P1 - White'}</h3>
+        <button className="btn-gray mx-auto block" onClick={switchSides}>
+          Switch Sides
+        </button>
+        <h3 className="text-center my-4 text-lg">{sidesSwitched ? 'P2 - White' : 'P2 - Black'}</h3>
+      </div>
       {children}
     </div>
   );
