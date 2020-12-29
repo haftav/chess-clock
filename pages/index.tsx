@@ -1,12 +1,13 @@
 import Head from 'next/head';
 import * as React from 'react';
-import EasyTimer, {TimerParams, TimeCounter} from 'easytimer.js';
+import EasyTimer, {TimerParams} from 'easytimer.js';
 
 import TimerContainer from '../components/TimerContainer';
 import Timer from '../components/Timer';
 import Options from '../components/Options';
 import Menu from '../components/Menu';
 import Game from '../components/Game';
+import HelpIcon from '../components/HelpIcon';
 import GameControl from '../components/GameControl';
 import useTimer from '../hooks/useTimer';
 import {getIncrementedTime} from '../utils';
@@ -204,7 +205,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="max-h-full">
+      <main className="max-h-full relative">
+        <HelpIcon />
         {gameState === GameStates.Menu ? (
           <Menu
             gameType={gameType}

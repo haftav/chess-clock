@@ -10,7 +10,7 @@ interface MenuProps {
 
 const Menu = ({children, gameType, toggleTimer, switchSides, sidesSwitched}: MenuProps) => {
   return (
-    <div className="container mx-auto px-8 py-8">
+    <div className="container mx-auto px-8 py-8 relative">
       <h1 className="text-4xl text-gray-600 text-center my-10">CHESS TIMER</h1>
       <div className="pb-8">
         <h2 className="text-2xl font-regular text-gray-600 text-center">Selected Game Mode:</h2>
