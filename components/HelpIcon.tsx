@@ -1,6 +1,10 @@
-const HelpIcon = () => {
+interface HelpIconProps {
+  handleClick: () => void;
+}
+
+const HelpIcon = ({handleClick}: HelpIconProps) => {
   return (
-    <button className="w-8 h-8 z-10 flex justify-center items-center absolute top-2 right-2 md:top-4 md:right-4">
+    <button onClick={handleClick} className="w-8 h-8 z-10 flex justify-center items-center absolute top-2 right-2 md:top-4 md:right-4">
       <svg
         className="stroke-current text-gray-400"
         xmlns="http://www.w3.org/2000/svg"
