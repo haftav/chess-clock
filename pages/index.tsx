@@ -1,13 +1,15 @@
 import Head from 'next/head';
 import * as React from 'react';
-import EasyTimer, {TimerParams, TimeCounter} from 'easytimer.js';
+import EasyTimer, {TimerParams} from 'easytimer.js';
 
 import TimerContainer from '../components/TimerContainer';
 import Timer from '../components/Timer';
 import Options from '../components/Options';
 import Menu from '../components/Menu';
 import Game from '../components/Game';
+import HelpIcon from '../components/HelpIcon';
 import GameControl from '../components/GameControl';
+import Modal from '../components/Modal';
 import useTimer from '../hooks/useTimer';
 import {getIncrementedTime} from '../utils';
 import {GameStates, Players, SwitchTurnParams} from '../models';
@@ -57,6 +59,9 @@ export default function Home() {
   const [increment, setIncrement] = React.useState(0);
   const [sidesSwitched, setSidesSwitched] = React.useState(false);
   const [winner, setWinner] = React.useState<Players | null>();
+  const [helpModalOpen, setHelpModalOpen] = React.useState(false);
+
+  const helpIcon = React.useRef<HTMLButtonElement>(null);
 
   const onEnd = React.useCallback((winningPlayer: Players) => {
     setWinner(winningPlayer);
@@ -141,8 +146,7 @@ export default function Home() {
       const p2Key = KeyCodes.RIGHT_SHIFT;
 
       if (gameState === GameStates.Menu || gameState === GameStates.Ended) {
-        return;
-      }
+        return;      }
 
       if (e.code === p1Key && turnState === Players.p1) {
         switchTurn({
@@ -197,6 +201,21 @@ export default function Home() {
     setGameState(GameStates.Paused);
   };
 
+  const openModal = () => {
+    if (currentTimer.isRunning()) {
+      currentTimer.pause();
+      setGameState(GameStates.Paused);
+    }
+    setHelpModalOpen(true);
+  };
+
+  const closeModal = React.useCallback(() => {
+    setHelpModalOpen(false);
+    if (helpIcon.current) {
+      helpIcon.current.focus();
+    }
+  }, []);
+
   return (
     <div>
       <Head>
@@ -204,7 +223,9 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="max-h-full">
+      <main className="max-h-full relative">
+        <HelpIcon handleClick={openModal} ref={helpIcon} />
+        <Modal isOpen={helpModalOpen} closeModal={closeModal} />
         {gameState === GameStates.Menu ? (
           <Menu
             gameType={gameType}
