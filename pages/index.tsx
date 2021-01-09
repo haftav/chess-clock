@@ -61,6 +61,8 @@ export default function Home() {
   const [winner, setWinner] = React.useState<Players | null>();
   const [helpModalOpen, setHelpModalOpen] = React.useState(false);
 
+  const helpIcon = React.useRef<HTMLButtonElement>(null);
+
   const onEnd = React.useCallback((winningPlayer: Players) => {
     setWinner(winningPlayer);
     setGameState(GameStates.Ended);
@@ -209,6 +211,9 @@ export default function Home() {
 
   const closeModal = React.useCallback(() => {
     setHelpModalOpen(false);
+    if (helpIcon.current) {
+      helpIcon.current.focus();
+    }
   }, []);
 
   return (
@@ -219,7 +224,7 @@ export default function Home() {
       </Head>
 
       <main className="max-h-full relative">
-        <HelpIcon handleClick={openModal} />
+        <HelpIcon handleClick={openModal} ref={helpIcon} />
         <Modal isOpen={helpModalOpen} closeModal={closeModal} />
         {gameState === GameStates.Menu ? (
           <Menu

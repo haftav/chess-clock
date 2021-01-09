@@ -1,5 +1,5 @@
-import EasyTimer from 'easytimer.js';
 import {GameStates} from '../models';
+import HelpIcon from './HelpIcon';
 
 interface GameControlProps {
   gameState: GameStates;
